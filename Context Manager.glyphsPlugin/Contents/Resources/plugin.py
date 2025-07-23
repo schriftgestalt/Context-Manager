@@ -21,7 +21,7 @@ from datetime import datetime
 from GlyphsApp import *
 from GlyphsApp.plugins import *
 from GlyphsApp.UI import GlyphView
-from AppKit import NSColor
+from AppKit import NSMenuItem, NSColor
 from vanilla import *
 
 class contextManager(GeneralPlugin):
@@ -168,9 +168,15 @@ class contextManager(GeneralPlugin):
 
 	@objc.python_method
 	def start(self):
-		newMenuItem = NSMenuItem("Context Manager", self.openWindow_)
+		newMenuItem = NSMenuItem.new()
+		newMenuItem.setTitle_("Context Manager")
+		newMenuItem.setAction_(self.openWindow_)
+		newMenuItem.setTarget_(self)
 		Glyphs.menu[EDIT_MENU].append(newMenuItem)
-		newMenuItem = NSMenuItem("Set Context...", self.setContext_)
+		newMenuItem = NSMenuItem.new()
+		newMenuItem.setTitle_("Set Context...")
+		newMenuItem.setAction_(self.setContext_)
+		newMenuItem.setTarget_(self)
 		Glyphs.menu[EDIT_MENU].append(newMenuItem)
 
 		Glyphs.addCallback(self.update, UPDATEINTERFACE)
@@ -202,7 +208,6 @@ class contextManager(GeneralPlugin):
 					self.updateWindow()
 		except:pass
 
-	@objc.python_method
 	def setContext_(self, sender):			
 		import random
 		from datetime import datetime
@@ -445,7 +450,6 @@ class contextManager(GeneralPlugin):
 				json.dump(self.jsonFile, outfile, indent=4, ensure_ascii=False)
 		self.w.tabs[0].contextClassList.set(self.jsonFile["Glyph"][self.selectedChar.parent.name]["ContextClass"])
 
-	@objc.python_method
 	def openWindow_(self, sender):
 		# Fix possible not Context Class linked
 				
