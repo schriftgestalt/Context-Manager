@@ -17,17 +17,18 @@ import json
 import os
 import random
 
-from datetime import datetime
-from GlyphsApp import *
-from GlyphsApp.plugins import *
+from GlyphsApp import Glyphs, EDIT_MENU, UPDATEINTERFACE, GetOpenFile
+from GlyphsApp.plugins import GeneralPlugin
 from GlyphsApp.UI import GlyphView
 from AppKit import NSMenuItem, NSColor
 from vanilla import *
 
+FloatingWindow, Tabs, Box, HorizontalLine, TextBox, CheckBox, Slider, List, TextEditor, EditText, SegmentedButton
+
 class contextManager(GeneralPlugin):
 
 	@objc.python_method
-	def settings(self):	
+	def settings(self):
 
 		self.name = Glyphs.localize({'en': 'Context Manager'})
 		self.font = Glyphs.font
@@ -44,7 +45,7 @@ class contextManager(GeneralPlugin):
 				shutil.copy(path, os.path.expanduser("~/Library/Application Support/Glyphs 3/info"))
 			except:
 				with open('ContextManager.json', 'w') as f:
-					json.dump({"ContextClass":{},"Glyph":{}}, f)
+					json.dump({"ContextClass": {}, "Glyph": {}}, f)
 
 		# Load File
 
@@ -66,14 +67,14 @@ class contextManager(GeneralPlugin):
 		# Draw Selected Glyph
 		#-------------------------------------------#
 
-		tab1.box = Box((10, 18, 170, 170), cornerRadius=6, fillColor=NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.05), borderColor=NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.1) )
+		tab1.box = Box((10, 18, 170, 170), cornerRadius=6, fillColor=NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.05), borderColor=NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.1))
 
 		tab1.box.glyphView = GlyphView((0, 10, -10, -20), layer=None, backgroundColor=NSColor.clearColor())
 
 		tab1.box.drawline = HorizontalLine((0, -18, -0, 1))
 
-		tab1.box.drawGlyphName = TextBox((2,-12,170,20), "GlyphName", sizeStyle='mini')
-		tab1.box.drawGlyphUnicode = TextBox((2,-12,-2,20), "Unicode", sizeStyle='mini', alignment="right")
+		tab1.box.drawGlyphName = TextBox((2, -12, 170, 20), "GlyphName", sizeStyle='mini')
+		tab1.box.drawGlyphUnicode = TextBox((2, -12, -2, 20), "Unicode", sizeStyle='mini', alignment="right")
 
 
 		#-------------------------------------------#
@@ -99,9 +100,8 @@ class contextManager(GeneralPlugin):
 		tab1.lowercaseCheckBox = CheckBox((10, 330, -10, 20), "Lowercase", callback=self.toggleOptionCallback, sizeStyle="small")
 		tab1.uppercaseCheckBox = CheckBox((100, 330, -10, 20), "Uppercase", callback=self.toggleOptionCallback, sizeStyle="small")
 
-		tab1.sliderText = TextBox((10, 374, 170, 17), f"Show [x] context", sizeStyle='small')
-		tab1.slider = Slider((10, 390, 170, 22),tickMarkCount=10, stopOnTickMarks=True, minValue=1, maxValue=10, callback=self.slideTextUpdateCallback, sizeStyle="small")
-		
+		tab1.sliderText = TextBox((10, 374, 170, 17), "Show [x] context", sizeStyle='small')
+		tab1.slider = Slider((10, 390, 170, 22), tickMarkCount=10, stopOnTickMarks=True, minValue=1, maxValue=10, callback=self.slideTextUpdateCallback, sizeStyle="small")
 
 
 		#-------------------------------------------#
@@ -112,11 +112,10 @@ class contextManager(GeneralPlugin):
 		tab1.contextClassList = List((200, 32, -10, 70), items=([]), drawFocusRing=False, rowHeight=20,)
 
 		tab1.contextWordsTitle = TextBox((200, 114, -10, 17), "Glyph Words", sizeStyle='small')
-		tab1.contextWordEditor = TextEditor((200, 132, 140, -10),text="", callback=self.updateGlyphWordsCallback)
+		tab1.contextWordEditor = TextEditor((200, 132, 140, -10), text="", callback=self.updateGlyphWordsCallback)
 
 		tab1.contextStringsTitle = TextBox((350, 114, -10, 17), "Glyph Strings", sizeStyle='small')
 		tab1.contextStringsEditor = TextEditor((350, 132, -10, -10), text="", callback=self.updateGlyphStringsCallback)
-
 
 
 		#–––––––––––––––––––––––––––––––––––––––––––#
@@ -126,20 +125,20 @@ class contextManager(GeneralPlugin):
 
 		self.classList = list(self.jsonFile["ContextClass"].keys())
 
-		tab2.listOfContextClassTitle = TextBox((10,14,wW-10,20), "Context Classes", sizeStyle="small")
-		tab2.filterClass = EditText((110,10,100,20),sizeStyle="small", placeholder="🔎 Search Glyph", callback=self.filterClassCallback)
-		tab2.listOfContextClass = List((10, 34, 200, wH-120), self.classList, selectionCallback=self.updateClassGlyphsCallback, doubleClickCallback=self.renameItem_contextClassCallBack, allowsMultipleSelection=False, drawFocusRing=False,rowHeight=20)
-		tab2.add_remove_contextClass = SegmentedButton((166, wH-116, 40, 20), [dict(title="+"), dict(title="-")], callback=self.add_remove_contextClassCallBack, sizeStyle="small", selectionStyle="momentary")
+		tab2.listOfContextClassTitle = TextBox((10, 14, wW - 10, 20), "Context Classes", sizeStyle="small")
+		tab2.filterClass = EditText((110, 10, 100, 20), sizeStyle="small", placeholder="🔎 Search Glyph", callback=self.filterClassCallback)
+		tab2.listOfContextClass = List((10, 34, 200, wH - 120), self.classList, selectionCallback=self.updateClassGlyphsCallback, doubleClickCallback=self.renameItem_contextClassCallBack, allowsMultipleSelection=False, drawFocusRing=False,rowHeight=20)
+		tab2.add_remove_contextClass = SegmentedButton((166, wH - 116, 40, 20), [dict(title="+"), dict(title="-")], callback=self.add_remove_contextClassCallBack, sizeStyle="small", selectionStyle="momentary")
 
 
-		tab2.contextClassGlyphsTitle = TextBox((220,14,wW-20,20), "Class Glyphs", sizeStyle="small")
-		tab2.contextClassGlyphs = List((220, 34, 180, wH-120), [], allowsMultipleSelection=True, drawFocusRing=False,rowHeight=20, enableDelete=True)
-		tab2.add_remove_contextGlyph = SegmentedButton((354, wH-116, 40, 20), [dict(title="+"), dict(title="-")], callback=self.add_remove_contextGlyphCallBack, sizeStyle="small", selectionStyle="momentary")
+		tab2.contextClassGlyphsTitle = TextBox((220, 14, wW - 20, 20), "Class Glyphs", sizeStyle="small")
+		tab2.contextClassGlyphs = List((220, 34, 180, wH - 120), [], allowsMultipleSelection=True, drawFocusRing=False, rowHeight=20, enableDelete=True)
+		tab2.add_remove_contextGlyph = SegmentedButton((354, wH - 116, 40, 20), [dict(title="+"), dict(title="-")], callback=self.add_remove_contextGlyphCallBack, sizeStyle="small", selectionStyle="momentary")
 		tab2.add_remove_contextGlyph.getNSSegmentedButton().setToolTip_("Add selected Glyph in FontView")
 
 
-		tab2.contentContextClassTitle = TextBox((410,14,wW-120,20), "Class Strings", sizeStyle="small")
-		tab2.contentContextClass = TextEditor((410, 34, 316, wH-120), "", callback=self.updateClassStringsCallback)
+		tab2.contentContextClassTitle = TextBox((410, 14, wW - 120, 20), "Class Strings", sizeStyle="small")
+		tab2.contentContextClass = TextEditor((410, 34, 316, wH - 120), "", callback=self.updateClassStringsCallback)
 
 
 		#–––––––––––––––––––––––––––––––––––––––––––#
@@ -154,16 +153,16 @@ class contextManager(GeneralPlugin):
 			"----",
 			dict(title="Open Context Manager Documentation", callback=self.openDocumentationCallback),
 		]
-		self.w.actionPopUpButton = ActionButton((wW-60, wH-28, -10, 18), actionPopUpButtonitems, sizeStyle='regular')
+		self.w.actionPopUpButton = ActionButton((wW - 60, wH - 28, -10, 18), actionPopUpButtonitems)
 
 		self.w.makeKey()
 		self.w.center()
 
 	@objc.python_method
-	def slideTextUpdateCallback(self,sender):
+	def slideTextUpdateCallback(self, sender):
 		value = round(sender.get())
 		Glyphs.defaults["com.HugoJourdan.ContextManager.slider"] = value
-		
+
 		self.w.tabs[0].sliderText.set(f"Show {value} context")
 
 	@objc.python_method
@@ -206,17 +205,13 @@ class contextManager(GeneralPlugin):
 				if self.selectedChar.parent.name != Glyphs.defaults["com.HugoJourdan.contextManager"] and self.w.isVisible():
 					Glyphs.defaults["com.HugoJourdan.contextManager"] = self.selectedChar.parent.name
 					self.updateWindow()
-		except:pass
+		except:
+			pass
 
-	def setContext_(self, sender):			
-		import random
-		from datetime import datetime
-		import os
+	def setContext_(self, sender):
 
 		self.font = Glyphs.font
 
-
-		
 		with open(self.jsonPath, encoding="utf-8") as json_file:
 			contextDic = json.load(json_file)
 
@@ -231,7 +226,7 @@ class contextManager(GeneralPlugin):
 			if c in contextDic["Glyph"]:
 
 				# If "Class" filter is checked
-				if Glyphs.defaults["com.HugoJourdan.ContextManager.contextClassCheckBox"] == True:
+				if Glyphs.defaults["com.HugoJourdan.ContextManager.contextClassCheckBox"]:
 					for CLASS in contextDic["ContextClass"]:
 						if c in contextDic["ContextClass"][CLASS]["Glyphs"]:
 							for item in contextDic["ContextClass"][CLASS]["Context"]:
@@ -240,19 +235,19 @@ class contextManager(GeneralPlugin):
 							#wordList.append(glyphsString)
 
 				# If "Context" filter is checked
-				if Glyphs.defaults["com.HugoJourdan.ContextManager.contextWordsCheckBox"] == True:
+				if Glyphs.defaults["com.HugoJourdan.ContextManager.contextWordsCheckBox"]:
 					if c in contextDic["Glyph"]:
 						for item in contextDic["Glyph"][c]["ContextWords"]:
 							wordList.append(item)
 
 				# If "String" filter is checked
-				if Glyphs.defaults["com.HugoJourdan.ContextManager.contextStringCheckBox"] == True:
+				if Glyphs.defaults["com.HugoJourdan.ContextManager.contextStringCheckBox"]:
 					if c in contextDic["Glyph"]:
 						for item in contextDic["Glyph"][c]["ContextStrings"]:
 							wordList.append(item)
 
 				# If "Smart" filter is checked
-				if Glyphs.defaults["com.HugoJourdan.ContextManager.smartContextCheckBox"] == True:
+				if Glyphs.defaults["com.HugoJourdan.ContextManager.smartContextCheckBox"]:
 					addString = []
 					classGlyphs = {}
 
@@ -265,15 +260,15 @@ class contextManager(GeneralPlugin):
 							# wordList.append(addString)
 							classGlyphs = ""
 							for glyph in contextDic["ContextClass"][CLASS]["Glyphs"]:
-									classGlyphs += glyph
+								classGlyphs += glyph
 							wordList.append(classGlyphs)
 
 				# If "Spacing" filter is checked
-				if Glyphs.defaults["com.HugoJourdan.ContextManager.spacingContextCheckBox"] == True:
+				if Glyphs.defaults["com.HugoJourdan.ContextManager.spacingContextCheckBox"]:
 					wordList.append(f"HH{c}HH{c}OO{c}OO{c}nn{c}nn{c}oo{c}oo")
 
 				# If "Uppercase" filter is checked
-				if Glyphs.defaults["com.HugoJourdan.ContextManager.uppercaseCheckBox"] == True:
+				if Glyphs.defaults["com.HugoJourdan.ContextManager.uppercaseCheckBox"]:
 					wordListCopy = []
 					for word in wordList:
 						wordCopy = ""
@@ -286,7 +281,7 @@ class contextManager(GeneralPlugin):
 					wordList = wordListCopy
 
 				# If "Lowercase" filter is checked
-				if Glyphs.defaults["com.HugoJourdan.ContextManager.lowercaseCheckBox"] == True:
+				if Glyphs.defaults["com.HugoJourdan.ContextManager.lowercaseCheckBox"]:
 					wordListCopy = []
 					for word in wordList:
 						wordCopy = ""
@@ -299,14 +294,14 @@ class contextManager(GeneralPlugin):
 					wordList = wordListCopy
 
 				# If "Start" or "Include" filter are checked
-				if Glyphs.defaults["com.HugoJourdan.ContextManager.startCheckBox"] == True and Glyphs.defaults["com.HugoJourdan.ContextManager.includeCheckBox"] == True:
+				if Glyphs.defaults["com.HugoJourdan.ContextManager.startCheckBox"] and Glyphs.defaults["com.HugoJourdan.ContextManager.includeCheckBox"]:
 					pass
-				elif Glyphs.defaults["com.HugoJourdan.ContextManager.startCheckBox"] == True:
+				elif Glyphs.defaults["com.HugoJourdan.ContextManager.startCheckBox"]:
 					tempList = wordList.copy()
 					for word in tempList:
 						if word[0] != selectedChar.string:
 							wordList.remove(word)
-				elif Glyphs.defaults["com.HugoJourdan.ContextManager.includeCheckBox"] == True:
+				elif Glyphs.defaults["com.HugoJourdan.ContextManager.includeCheckBox"]:
 					tempList = wordList.copy()
 					for word in tempList:
 						if word[0] == selectedChar.string:
@@ -730,8 +725,14 @@ class contextManager(GeneralPlugin):
 	# Action button "Merge with another Context File" callback
 	@objc.python_method
 	def mergeCallback(self, sender):
-		mergeFile = GetOpenFile(message="Select a .json file to merged",
-								allowsMultipleSelection=False, filetypes=None, path=None)
+		mergeFile = GetOpenFile(
+			message="Select a .json file to merged",
+			allowsMultipleSelection=False,
+			filetypes=None,
+			path=None
+		)
+		if not mergeFile:
+			return
 
 		with open(mergeFile) as json_file:
 			mergeFile = json.load(json_file)
@@ -769,15 +770,21 @@ class contextManager(GeneralPlugin):
 	def importCallback(self, sender):
 
 		def importContextDataCallback(sender):
-			mergeFile = GetOpenFile(message="Select a .json file to import data",
-								allowsMultipleSelection=False, filetypes=None, path=None)
+			mergeFile = GetOpenFile(
+				message="Select a .json file to import data",
+				allowsMultipleSelection=False,
+				filetypes=None,
+				path=None
+			)
+			if not mergeFile:
+				return
 
 			with open(mergeFile, encoding='utf8') as json_file:
 				mergeFile = json.load(json_file)
 			with open(self.jsonPath, encoding='utf8') as json_file:
 				jsonFile = json.load(json_file)
 
-			if w.contextClassCheckBox.get() == True:
+			if w.contextClassCheckBox.get():
 				for CLASS in mergeFile["ContextClass"]:
 					if CLASS not in jsonFile["ContextClass"]:
 						jsonFile["ContextClass"][CLASS] = {}
@@ -787,33 +794,33 @@ class contextManager(GeneralPlugin):
 						if CLASS not in jsonFile["Glyph"][GLYPH]["ContextClass"]:
 							jsonFile["Glyph"][GLYPH]["ContextClass"].append(CLASS)
 
-			if w.contextClassGlyphsCheckBox.get() == True:
+			if w.contextClassGlyphsCheckBox.get():
 				for CLASS in mergeFile["ContextClass"]:
 					if CLASS in jsonFile["ContextClass"]:
 						jsonFile["ContextClass"][CLASS]["Glyphs"] = mergeFile["ContextClass"][CLASS]["Glyphs"]
 
-			if w.contextClassContextCheckBox.get() == True:
+			if w.contextClassContextCheckBox.get():
 				for CLASS in mergeFile["ContextClass"]:
 					if CLASS in jsonFile["ContextClass"]:
 						jsonFile["ContextClass"][CLASS]["Context"] = mergeFile["ContextClass"][CLASS]["Context"]
 
-			if w.contextWordsCheckBox.get() == True:
+			if w.contextWordsCheckBox.get():
 				for GLYPH in mergeFile["Glyph"].keys():
 					glyphName = Glyphs.font.glyphs[GLYPH].name
 
-					if not glyphName in jsonFile["Glyph"]:
-						jsonFile["Glyph"][glyphName] = {"ContextClass":[], "ContextWords":[], "ContextStrings":[]}
+					if glyphName not in jsonFile["Glyph"]:
+						jsonFile["Glyph"][glyphName] = {"ContextClass": [], "ContextWords": [], "ContextStrings": []}
 					for word in mergeFile["Glyph"][GLYPH]["ContextWords"]:
 						if word not in jsonFile["Glyph"][glyphName]["ContextWords"]:
 							self.jsonFile["Glyph"][glyphName]["ContextWords"].append(word)
 
-			if w.contextStringsCheckBox.get() == True:
+			if w.contextStringsCheckBox.get():
 				for GLYPH in mergeFile["Glyph"]:
-					
+
 					glyphName = self.font.glyphs[GLYPH].name
-					if not glyphName in jsonFile["Glyph"]:
-						jsonFile["Glyph"][glyphName] = {"ContextClass":[], "ContextWords":[], "ContextStrings":[]}
-					
+					if glyphName not in jsonFile["Glyph"]:
+						jsonFile["Glyph"][glyphName] = {"ContextClass": [], "ContextWords": [], "ContextStrings": []}
+
 					jsonFile["Glyph"][glyphName]["ContextStrings"] = mergeFile["Glyph"][GLYPH]["ContextStrings"]
 
 			os.chdir(os.path.dirname(self.jsonPath))
@@ -821,25 +828,23 @@ class contextManager(GeneralPlugin):
 				json.dump(self.jsonFile, outfile, indent=4, ensure_ascii=False)
 
 			contextManager.updateWindow(self)
-		
 
 		wW, wH, linePos = 160, 180, 10
 		w = FloatingWindow((wW, wH), "Import Context Data")
-		w.importTitle = TextBox((10, -wH+linePos, -10,16), "Select Data to Import")
+		w.importTitle = TextBox((10, -wH + linePos, -10, 16), "Select Data to Import")
 		linePos += 28
-		w.contextClassCheckBox = CheckBox((10,-wH+linePos,-10,16), "Context Class", sizeStyle="small")
+		w.contextClassCheckBox = CheckBox((10, -wH + linePos, -10, 16), "Context Class", sizeStyle="small")
 		linePos += 18
-		w.contextClassGlyphsCheckBox = CheckBox((30,-wH+linePos,-10,16), " ↳ Glyphs", sizeStyle="small")
+		w.contextClassGlyphsCheckBox = CheckBox((30, -wH + linePos, -10, 16), " ↳ Glyphs", sizeStyle="small")
 		linePos += 18
-		w.contextClassContextCheckBox = CheckBox((30,-wH+linePos,-10,16), " ↳ Context", sizeStyle="small")
-		w.sep2 = HorizontalLine((10,-wH+linePos+12,-10,16))
+		w.contextClassContextCheckBox = CheckBox((30, -wH + linePos, -10, 16), " ↳ Context", sizeStyle="small")
+		w.sep2 = HorizontalLine((10, -wH + linePos + 12, -10, 16))
 		linePos += 24
-		w.contextWordsCheckBox = CheckBox((10,-wH+linePos,-10,16), "Context Words", sizeStyle="small")
+		w.contextWordsCheckBox = CheckBox((10, -wH + linePos, -10, 16), "Context Words", sizeStyle="small")
 		linePos += 18
-		w.contextStringsCheckBox = CheckBox((10,-wH+linePos,-10,16), "Context Strings", sizeStyle="small")
+		w.contextStringsCheckBox = CheckBox((10, -wH + linePos, -10, 16), "Context Strings", sizeStyle="small")
 		linePos += 24
-		w.runButton = Button((6,-26,-6,16), "Load file", callback=importContextDataCallback)
-
+		w.runButton = Button((6, -26, -6, 16), "Load file", callback=importContextDataCallback)
 
 
 		w.center()
@@ -848,7 +853,7 @@ class contextManager(GeneralPlugin):
 		#@objc.python_method
 
 	@objc.python_method
-	def openDocumentationCallback( self, sender ):
+	def openDocumentationCallback(self, sender):
 		URL = "https://github.com/HugoJourdan/Context-Manager"
 		import webbrowser
 		webbrowser.open(URL)
